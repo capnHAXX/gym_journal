@@ -1,5 +1,5 @@
 import datetime
-        
+from data import *
 
 class Set:
 
@@ -10,5 +10,14 @@ class Set:
         self.reps = reps
         self.weight = weight
     
-    def add_set(self, cursor):
-        cursor.execute("INSERT INTO journal(date, exercise, set_n, reps, weight) VALUES(?, ?, ?, ?, ?)", (self.date, self.exercise, self.set_n, self.reps, self.weight))
+    def add_set(self):
+        try:
+            connection = connect_to_database()
+            cursor = create_table(connection)
+            cursor.execute("INSERT INTO journal(date, exercise, set_n, reps, weight) VALUES(?, ?, ?, ?, ?)",
+                           (self.date, self.exercise, self.set_n, self.reps, self.weight))
+            connection.commit()
+        except Exception as e:
+            raise e
+        finally:
+            connection.close()

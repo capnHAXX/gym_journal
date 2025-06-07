@@ -1,50 +1,70 @@
 import tkinter as tk
 from tkinter import *
 from exercise import Set
-from data import *
+
 
 class Window:
 
     def __init__(self, width, height):
-        self.connection = connect_to_database() #see data for more: using sqlite
-        self.cursor = create_table(self.connection)
         self.__root = Tk()
         self.__root.title = "Workout Tracker"
+        self.__root.minsize(width, height)
         self.__canvas = Canvas(self.__root, bg="Grey", width=width, height=height)
-        self.__canvas.pack(fill = BOTH, expand = True)
+        self.__canvas.pack(fill=BOTH, expand=True)
         self.__running = False
         self.__root.protocol("WM_DELETE_WINDOW", self.close)
-        self.generate_exercise()
+        self.main_screen()
     
+    def main_screen (self):
+        welcome = tk.Label(self.__canvas, text="Welcome!")
+        welcome.pack(side=TOP)
+        exercise_button = tk.Button(self.__canvas, text="Enter Exercerise", command=self.generate_exercise)
+        exercise_button.pack(anchor=W)
+        chart_button = tk.Button(self.__canvas, text="View Progress")
+        chart_button.pack(anchor=E)
+        delete_button = tk.Button(self.__canvas, text="Delete Last Entry")
+        delete_button.pack(anchor=S)
+
+    #def generate_chart
+
     def generate_exercise(self): #creates initial entry fields for date, exercise and total number of sets
-        self.date_label = tk.Label(self.__canvas, text="Enter date (YYYY-MM-DD):")
-        self.date_label.pack(anchor='w', padx=10, pady=5)
-        self.date_entry = tk.Entry(self.__canvas)
-        self.date_entry.pack(fill=tk.X, padx=10, pady=5)
+        for widget in self.__canvas.winfo_children():
+            widget.destroy()
+        date_label = tk.Label(self.__canvas, text="Enter date (YYYY-MM-DD):")
+        date_label.pack(anchor='w', padx=10, pady=5)
+        date_entry = tk.Entry(self.__canvas)
+        date_entry.pack(fill=tk.X, padx=10, pady=5)
 
-        self.exercise_label = tk.Label(self.__canvas, text="Exercise:")
-        self.exercise_label.pack(anchor='w', padx=10, pady=5)
-        self.exercise_entry = tk.Entry(self.__canvas)
-        self.exercise_entry.pack(fill=tk.X, padx=10, pady=5)
+        exercise_label = tk.Label(self.__canvas, text="Exercise:")
+        exercise_label.pack(anchor='w', padx=10, pady=5)
+        exercise_entry = tk.Entry(self.__canvas)
+        exercise_entry.pack(fill=tk.X, padx=10, pady=5)
 
-        self.total_sets_label = tk.Label(self.__canvas, text="Total Sets:")
-        self.total_sets_label.pack(anchor='w', padx=10, pady=5)
-        self.total_sets_entry = tk.Entry(self.__canvas)
-        self.total_sets_entry.pack(fill=tk.X, padx=10, pady=5)
+        total_sets_label = tk.Label(self.__canvas, text="Total Sets:")
+        total_sets_label.pack(anchor='w', padx=10, pady=5)
+        total_sets_entry = tk.Entry(self.__canvas)
+        total_sets_entry.pack(fill=tk.X, padx=10, pady=5)
 
-        generate_button= tk.Button(self.__canvas, text="OK", command=self.generate_sets) #ok button calls save_exercise
+        generate_button = tk.Button(self.__canvas, text="OK", command=lambda: self.generate_sets(date_entry, exercise_entry, total_sets_entry)) #ok button calls save_exercise
         generate_button.pack(anchor='w', padx=10, pady=5)
+        cancel_button = tk.Button(self.__canvas, text="Cancel", command=self.cancel)
+        cancel_button.pack(anchor='w', padx=10, pady=5)
 
-        self.sets_frame = tk.Frame(self.__canvas)
+        self.sets_frame = Frame(self.__canvas)
         self.sets_frame.pack(fill = BOTH, padx = 10, pady = 5)
     
-    def generate_sets(self): #initializes exercise object
+    def cancel(self):
+        for widget in self.__canvas.winfo_children():
+            widget.destroy()
+        self.main_screen()
+    
+    def generate_sets(self, date_entry, exercise_entry, total_sets_entry): #initializes exercise object
         
-        total_sets = int(self.total_sets_entry.get())     
+        total_sets = int(total_sets_entry.get())     
         if total_sets <= 0:
             raise ValueError("Total Sets must be integer greater than 0") #check to ensure total sets is an integer greater than 0
         
-        self.set_entries = []
+        set_entries = []
         for i in range(total_sets):
             set_label = tk.Label(self.sets_frame, text=f"Set #{i+1}")
             set_label.pack(anchor='w', padx=10, pady=5)
@@ -59,20 +79,19 @@ class Window:
             weight_entry = tk.Entry(self.sets_frame)
             weight_entry.pack(fill=tk.X, padx=10, pady=5)
 
-            self.set_entries.append((reps_entry, weight_entry))
+            set_entries.append((reps_entry, weight_entry))
         
-        save_button = tk.Button(self.sets_frame, text = "Save", command=self.save_sets)
+        save_button = tk.Button(self.sets_frame, text = "Save", command=lambda: self.save_sets(set_entries, date_entry, exercise_entry))
         save_button.pack(anchor='w', padx=10, pady=5)
 
-    def save_sets(self):
-        
-        for i in range(len(self.set_entries)):
-            reps = int(self.set_entries[i][0].get())
-            weight = int(self.set_entries[i][1].get())
+    def save_sets(self, set_entries, date_entry, exercise_entry):
+        for i in range(len(set_entries)):
+            reps = int(set_entries[i][0].get())
+            weight = int(set_entries[i][1].get())
             print(reps, weight)
-            s = Set(self.date_entry.get(), self.exercise_entry.get(), i+1, reps, weight)
-            s.add_set(self.cursor)
-        self.connection.commit()
+            s = Set(date_entry.get(), exercise_entry.get(), i+1, reps, weight)
+            s.add_set()
+        
 
     
     def redraw(self):

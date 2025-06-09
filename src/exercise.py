@@ -21,3 +21,4 @@ class Set:
             raise e
         finally:
             connection.close()
+            print("Connection closed.")

@@ -9,7 +9,7 @@ def create_table(connection):
     cursor = connection.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
     if len(cursor.fetchall()) == 0:
-        cursor.execute("CREATE TABLE journal(date DATE, exercise VARCHAR, set_n INT(8), reps INT(8), weight INT(8))")
+        cursor.execute("CREATE TABLE journal(id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE, exercise VARCHAR, set_n INT(8), reps INT(8), weight INT(8))")
     return cursor
 
 def generate_csv(connection):
